@@ -23,11 +23,12 @@
    [Steam安装目录]/steamapps/common/Cookie Clicker/resources/app/mods/local/
    ```
 
-2. 创建新文件夹 `cookie_roi_calculator`
+2. 创建新文件夹 `Cookie-ROI-Calculator`
 
 3. 将发布文件复制到该文件夹：
    - `main.js`
    - `lang.js`
+   - `info.txt`
 
 4. 在游戏中启用 mod
 
@@ -35,8 +36,8 @@
 
 1. 克隆仓库：
    ```bash
-   git clone [仓库地址]
-   cd cookie_roi_calculator
+   git clone https://github.com/lanytcc/Cookie-ROI-Calculator.git
+   cd Cookie-ROI-Calculator
    ```
 
 2. 安装依赖：
@@ -62,7 +63,7 @@ cookie_roi_calculator/
 │   ├── config.js       # 配置文件
 │   └── main.js         # 主要逻辑
 ├── scripts/
-│   └── generateLang.js # 语言文件生成脚本
+│   └── generateFile.js # 语言文件生成脚本
 ├── dist/               # 构建输出目录
 ├── package.json
 └── rollup.config.js
