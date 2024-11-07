@@ -1,0 +1,1 @@
+export const MOD_ID = 'cookie_roi_calculator';
