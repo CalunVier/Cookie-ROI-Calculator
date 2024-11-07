@@ -33,3 +33,9 @@ async function generateLangFile() {
 }
 
 generateLangFile();
+
+const infoPath = path.join(__dirname, '../info.txt');
+fs.copyFile(infoPath, path.join(__dirname, '../dist/info.txt'), (err) => {
+    if (err) throw err;
+    console.log('info.txt was copied to dist/info.txt');
+})

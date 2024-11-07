@@ -4,7 +4,7 @@
     "scripts": {
         "build": "rollup -c",
         "watch": "rollup -c -w",
-        "build:lang": "node scripts/generateLang.js"
+        "build:all": "rollup -c && node scripts/generateFile.js"
     },
     "devDependencies": {
         "@rollup/plugin-node-resolve": "^15.3.0",
