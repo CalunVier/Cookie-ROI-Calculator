@@ -3,9 +3,9 @@
 	"ID": "cookie_roi_calculator",
 	"Author": "藍鴉",
 	"Description": "Calculates and displays ROI (Return on Investment) for buildings with normalized rankings",
-	"ModVersion": 1.1,
-	"GameVersion": 2.052,
-	"Date": "07/11/2024",
+	"ModVersion": 2,
+	"GameVersion": 2.053,
+	"Date": "09/04/2025",
 	"Dependencies": [],
 	"LanguagePacks": [
     	"lang.js"

@@ -71,9 +71,35 @@ Game.registerMod(MOD_ID, {
             let roiInfo = this.ROIMap.get(building.name);
 
             let text = '<br>--------------<br>';
+            
+            let timeUnits = [
+                {name: 'Second', multiplier: 1},
+                {name: 'Minute', multiplier: 60},
+                {name: 'Hour', multiplier: 60 * 60},
+                {name: 'Day', multiplier: 60 * 60 * 24},
+                {name: 'Month', multiplier: 60 * 60 * 24 * 30},
+                {name: 'Year', multiplier: 60 * 60 * 24 * 365}
+            ];
+            
+            let roiValue = roi * 100;
+            let timeUnit = 'Second';
+            let timeMultiplier = 1;
+            let num = 1; // 阈值
+            
+            // 自动选择合适的时间单位
+            for(let i = 0; i < timeUnits.length; i++) {
+                if(roiValue > 0 && roiValue < num && i < timeUnits.length - 1) {
+                    timeUnit = timeUnits[i+1].name;
+                    timeMultiplier = timeUnits[i+1].multiplier;
+                    roiValue = roi * 100 * timeMultiplier;
+                } else {
+                    break;
+                }
+            }
+            
             text += loc(`[${MOD_ID}]ROI`) + ': ' +
-                (roi > 0 ? Beautify(roi * 100, 2) : '0') +
-                '%' + loc(`[${MOD_ID}]PerSecond`);
+                (roi > 0 ? Beautify(roiValue, 3) : '0') +
+                '%' + loc(`[${MOD_ID}]Per${timeUnit}`);
 
             if (roiInfo) {
                 text += '<br>' + loc(`[${MOD_ID}]NormalizedROI`) + ': ' +

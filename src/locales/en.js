@@ -5,5 +5,10 @@ export default {
     NormalizedROI: 'Normalized',
     Rank: 'Rank',
     PaybackTime: 'Payback Time',
-    PerSecond: '/sec'
+    PerSecond: '/sec',
+    PerMinute: '/min',
+    PerHour: '/hour',
+    PerDay: '/day',
+    PerMonth: '/month',
+    PerYear: '/year'
 };

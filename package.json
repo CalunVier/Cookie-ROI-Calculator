@@ -1,6 +1,7 @@
 {
     "name": "cookie-roi-calculator",
     "version": "1.0.0",
+    "type": "module",
     "scripts": {
         "build": "rollup -c",
         "watch": "rollup -c -w",

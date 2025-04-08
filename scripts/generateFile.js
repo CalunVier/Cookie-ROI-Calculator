@@ -1,12 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+import { MOD_ID } from '../src/config.js';
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function generateLangFile() {
-    const modId = 'cookie_roi_calculator';
     const localesDir = path.join(__dirname, '../src/locales');
     const outputFile = path.join(__dirname, '../dist/lang.js');
 
-    // 获取所有语言文件
     const localeFiles = fs.readdirSync(localesDir)
         .filter(file => file.endsWith('.js'));
 
@@ -16,31 +20,41 @@ async function generateLangFile() {
         const locale = path.basename(file, '.js').toUpperCase();
         const localePath = path.join(localesDir, file);
 
-        // 动态导入语言文件
-        const translations = require(localePath).default;
+        const module = await import(pathToFileURL(localePath).href);
+        const translations = module.default;
 
-        // 生成ModLanguage调用
         const formattedTranslations = Object.entries(translations)
-            .map(([key, value]) => `    '[${modId}]${key}': '${value}'`)
+            .map(([key, value]) => `    '[${MOD_ID}]${key}': '${value}'`)
             .join(',\n');
 
         output += `ModLanguage('${locale}', {\n${formattedTranslations}\n});\n\n`;
     }
 
-    // 写入文件
     fs.writeFileSync(outputFile, output);
     console.log('Generated lang.js successfully!');
 }
 
-generateLangFile();
-
-function copyFile1(str) {
+async function copyFile1(str) {
     const infoPath = path.join(__dirname, str);
-    fs.copyFile(infoPath, path.join(__dirname, '../dist/' + str), (err) => {
-        if (err) throw err;
+    const dest = path.join(__dirname, '../dist/', str);
+    
+    try {
+        await fs.promises.copyFile(infoPath, dest);
         console.log(`${str} was copied to dist/${str}`);
-    })
+    } catch (err) {
+        console.error(`Error copying ${str}:`, err);
+    }
 }
 
-copyFile1("info.txt")
-copyFile1("thumbnail.png")
+async function main() {
+    try {
+        await generateLangFile();
+        await copyFile1("info.txt");
+        await copyFile1("thumbnail.png");
+    } catch (err) {
+        console.error('Error during execution:', err);
+        process.exit(1);
+    }
+}
+
+main();
