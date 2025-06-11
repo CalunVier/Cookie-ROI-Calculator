@@ -38,6 +38,8 @@ const localeData = {
 
 // 本地化函数
 function loc(key) {
+    console.log(`[Cookie ROI] Localizing key: ${key}`);
+    
     // 获取当前语言设置，默认为英文
     let currentLang = Game.language || 'en';
     
@@ -48,45 +50,68 @@ function loc(key) {
         currentLang = 'en';
     }
     
+    console.log(`[Cookie ROI] Current language: ${currentLang}`);
+    
     // 解析key，格式如 [cookie_roi_calculator]ModLoaded
     let cleanKey = key.replace(`[${MOD_ID}]`, '');
+    console.log(`[Cookie ROI] Clean key: ${cleanKey}`);
     
     if (localeData[currentLang] && localeData[currentLang][cleanKey]) {
-        return localeData[currentLang][cleanKey];
+        let result = localeData[currentLang][cleanKey];
+        console.log(`[Cookie ROI] Found translation: ${result}`);
+        return result;
     }
     
     // 如果当前语言没有找到，回退到英文
     if (localeData['en'] && localeData['en'][cleanKey]) {
-        return localeData['en'][cleanKey];
+        let result = localeData['en'][cleanKey];
+        console.log(`[Cookie ROI] Using fallback translation: ${result}`);
+        return result;
     }
     
     // 如果都没找到，返回原始key
+    console.log(`[Cookie ROI] No translation found, returning: ${cleanKey}`);
     return cleanKey;
 }
 
 // 注册模组
 Game.registerMod(MOD_ID, {
     init: function () {
+        console.log('[Cookie ROI] Mod initialization started');
+        
         // 添加初始化提示
-        Game.Notify(
-            loc(`[${MOD_ID}]ModLoaded`),
-            loc(`[${MOD_ID}]Calculating`),
-            [16, 5]
-        );
+        try {
+            Game.Notify(
+                loc(`[${MOD_ID}]ModLoaded`),
+                loc(`[${MOD_ID}]Calculating`),
+                [16, 5]
+            );
+            console.log('[Cookie ROI] Notification sent successfully');
+        } catch (error) {
+            console.error('[Cookie ROI] Error sending notification:', error);
+        }
 
         // 存储建筑ROI的数组
         this.ROIMap = new Map();
 
         // 计算建筑的ROI（投资回报率）
         this.calculateBuildingROI = function (building) {
-            if (building.amount <= 0) return 0;
+            console.log(`[Cookie ROI] Calculating ROI for building: ${building.name}, amount: ${building.amount}`);
+            
+            if (building.amount <= 0) {
+                console.log(`[Cookie ROI] Building ${building.name} has no units, returning 0`);
+                return 0;
+            }
 
             let baseCps = building.storedCps;
             let mult = Game.globalCpsMult;
+            
+            console.log(`[Cookie ROI] Base CPS: ${baseCps}, Global mult: ${mult}`);
 
             for (let i in Game.buffs) {
                 if (Game.buffs[i].multCpS) {
                     mult *= Game.buffs[i].multCpS;
+                    console.log(`[Cookie ROI] Applied buff ${i}, new mult: ${mult}`);
                 }
             }
 
@@ -94,6 +119,8 @@ Game.registerMod(MOD_ID, {
             let futureCps = baseCps * (building.amount + 1) * mult;
             let deltaCps = futureCps - currentCps;
             let roi = deltaCps / building.price;
+            
+            console.log(`[Cookie ROI] ${building.name} - Current CPS: ${currentCps}, Future CPS: ${futureCps}, Delta: ${deltaCps}, Price: ${building.price}, ROI: ${roi}`);
 
             return roi;
         };
@@ -106,6 +133,7 @@ Game.registerMod(MOD_ID, {
 
         // 计算归一化的ROI值和排名
         this.calculateNormalizedROI = function () {
+            console.log('[Cookie ROI] Starting normalized ROI calculation');
             let roiValues = [];
 
             for (let i in Game.Objects) {
@@ -116,9 +144,11 @@ Game.registerMod(MOD_ID, {
                     roi: roi
                 });
             }
-
+            
+            console.log(`[Cookie ROI] Calculated ROI for ${roiValues.length} buildings`);
             roiValues.sort((a, b) => b.roi - a.roi);
             const maxROI = roiValues[0].roi;
+            console.log(`[Cookie ROI] Max ROI: ${maxROI} from ${roiValues[0].name}`);
 
             this.ROIMap.clear();
             roiValues.forEach((item, index) => {
@@ -127,13 +157,18 @@ Game.registerMod(MOD_ID, {
                     rank: index + 1
                 });
             });
+            
+            console.log(`[Cookie ROI] Updated ROI map with ${this.ROIMap.size} entries`);
         };
 
         // 格式化ROI信息
         this.formatROIInfo = function (building) {
+            console.log(`[Cookie ROI] Formatting ROI info for ${building.name}`);
             let roi = this.calculateBuildingROI(building);
             let paybackTime = this.calculatePaybackTime(roi);
             let roiInfo = this.ROIMap.get(building.name);
+            
+            console.log(`[Cookie ROI] ${building.name} - ROI: ${roi}, Payback: ${paybackTime}, Info:`, roiInfo);
 
             let text = '<br>--------------<br>';
             
@@ -162,6 +197,8 @@ Game.registerMod(MOD_ID, {
                 }
             }
             
+            console.log(`[Cookie ROI] ${building.name} - Selected time unit: ${timeUnit}, ROI value: ${roiValue}`);
+            
             text += loc(`[${MOD_ID}]ROI`) + ': ' +
                 (roi > 0 ? Beautify(roiValue, 3) : '0') +
                 '%' + loc(`[${MOD_ID}]Per${timeUnit}`);
@@ -178,20 +215,34 @@ Game.registerMod(MOD_ID, {
                     Game.sayTime(paybackTime * Game.fps);
             }
 
+            console.log(`[Cookie ROI] Generated text for ${building.name}:`, text);
             return text;
         };
 
         // 使用hook修改建筑的tooltip
         let self = this;
+        console.log('[Cookie ROI] Registering draw hook');
+        
         Game.registerHook('draw', function () {
-            self.calculateNormalizedROI();
+            try {
+                console.log('[Cookie ROI] Draw hook triggered');
+                self.calculateNormalizedROI();
 
-            for (let i in Game.Objects) {
-                let building = Game.Objects[i];
-                let originalDesc = building.desc.split('<br>--------------<br>')[0];
-                building.desc = originalDesc + self.formatROIInfo.call(self, building);
+                let buildingCount = 0;
+                for (let i in Game.Objects) {
+                    let building = Game.Objects[i];
+                    let originalDesc = building.desc.split('<br>--------------<br>')[0];
+                    let newDesc = originalDesc + self.formatROIInfo.call(self, building);
+                    building.desc = newDesc;
+                    buildingCount++;
+                }
+                console.log(`[Cookie ROI] Updated descriptions for ${buildingCount} buildings`);
+            } catch (error) {
+                console.error('[Cookie ROI] Error in draw hook:', error);
             }
         });
+        
+        console.log('[Cookie ROI] Mod initialization completed');
     },
 
     save: function () {
